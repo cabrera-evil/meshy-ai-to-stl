@@ -67,23 +67,11 @@ async function getActiveTab() {
 
 async function getLinksFromActiveTab() {
   const tab = await getActiveTab();
-  const all = new Set();
-
-  const remembered = await chrome.runtime.sendMessage({ type: "get-meshy-requests", tabId: tab.id }).catch(() => null);
-  for (const link of remembered?.links || []) all.add(link);
-
-  try {
-    const response = await chrome.tabs.sendMessage(tab.id, { type: "scan-meshy-links" });
-    for (const link of response?.links || []) all.add(link);
-  } catch {
-    const [result] = await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: scanPageForMeshyLinks,
-    });
-    for (const link of result?.result || []) all.add(link);
-  }
-
-  return [...all].filter(isMeshyUrl).slice(0, 50);
+  const [result] = await chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: scanPageForMeshyLinks,
+  });
+  return (result?.result || []).filter(isMeshyUrl).slice(0, 50);
 }
 
 function fillLinks(links) {
@@ -119,12 +107,13 @@ function convertInSandbox(buffer, format) {
       else reject(new Error(event.data.error || "Conversion failed"));
     };
     window.addEventListener("message", onMessage);
+    // The sandboxed iframe has an opaque origin, so "*" is the only valid target; event.source is checked on replies.
     sandboxFrame.contentWindow.postMessage({ type: "convert", id, format, buffer }, "*", [buffer]);
   });
 }
 
 async function fetchArrayBuffer(url) {
-  const response = await fetch(url, { credentials: "include", redirect: "follow" });
+  const response = await fetch(url, { credentials: "omit", redirect: "follow" });
   if (!response.ok) throw new Error(`Download failed: ${response.status} ${response.statusText}`);
   return response.arrayBuffer();
 }
@@ -159,6 +148,10 @@ convertButton.addEventListener("click", async () => {
 
   try {
     const format = formatSelect.value;
+    // Must be the first await so the click's user gesture is still valid.
+    const origin = `${new URL(url).origin}/*`;
+    const granted = await chrome.permissions.request({ origins: [origin] });
+    if (!granted) throw new Error(`Site access to ${origin} was denied.`);
     setBusy(true, "Downloading .meshy...");
     const buffer = await fetchArrayBuffer(url);
     setBusy(true, format === "glb" ? "Decoding GLB..." : `Decoding and converting to ${format.toUpperCase()}...`);

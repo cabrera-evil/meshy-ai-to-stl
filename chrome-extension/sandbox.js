@@ -286,7 +286,8 @@ async function convert(buffer, format) {
 }
 
 window.addEventListener("message", async (event) => {
-  if (event.data?.type !== "convert") return;
+  if (event.source !== window.parent || event.data?.type !== "convert") return;
+  // Replies target the parent's real origin (chrome-extension://...); this page's own origin is the opaque one.
   try {
     const output = await convert(event.data.buffer, event.data.format);
     event.source.postMessage({ id: event.data.id, ok: true, output }, event.origin, [output]);

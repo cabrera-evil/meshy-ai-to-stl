@@ -4,7 +4,6 @@ Meshy To STL is a Chrome extension that finds `.meshy` files loaded by the curre
 
 ## Features
 
-- Detects `.meshy` files from the current page network activity.
 - Also checks browser resource entries from `performance.getEntriesByType("resource")`.
 - Converts Meshy encrypted model files locally in the browser.
 - Exports binary STL for 3D printing, OBJ for 3D editors, or the decoded GLB model.
@@ -39,7 +38,7 @@ Then load the extension in Chrome:
 ## Usage
 
 1. Open the page where the Meshy model is hosted.
-2. Reload the page so the extension can capture network requests.
+2. Reload the page if no file is listed.
 3. Click the Meshy To STL extension icon.
 4. Select the detected `.meshy` file.
 5. Choose STL, OBJ, or GLB.
@@ -52,5 +51,7 @@ Then load the extension in Chrome:
 - On Windows, run `setup-vendor.ps1` after cloning or extracting the project.
 - On macOS or Linux, run `sh ./setup-vendor.sh` after cloning or extracting the project.
 - If the extension says decoder files are missing, run the setup script for your operating system and reload the extension in `chrome://extensions`.
+- On convert, Chrome asks for site access to the model file's origin (optional host permission); the extension holds no site access until you allow it. Downloads are made without cookies.
+- `setup-vendor.sh` and `setup-vendor.ps1` verify the SHA-256 of each decoder file against pinned values. On a mismatch the file is deleted and the script fails; upstream may have changed, so re-review the file before updating the pin.
 - The extension requires Google Chrome or a compatible Chromium browser; Safari is not supported.
-- Sites with login, temporary URLs, or strict download permissions may require you to be logged in with the same Chrome session.
+- Sites with temporary URLs or strict download permissions may not work, since downloads are made without your cookies.

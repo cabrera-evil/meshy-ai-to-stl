@@ -10,26 +10,8 @@
   "permissions": [
     "activeTab",
     "downloads",
-    "scripting",
-    "webRequest"
+    "scripting"
   ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
-  "content_scripts": [
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "content.js"
-      ],
-      "run_at": "document_idle"
-    }
-  ],
-  "background": {
-    "service_worker": "background.js"
-  },
   "sandbox": {
     "pages": [
       "sandbox.html"
@@ -39,15 +21,7 @@
     "extension_pages": "script-src 'self'; object-src 'self'",
     "sandbox": "sandbox allow-scripts allow-downloads; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; child-src 'self'"
   },
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "vendor/mesh_loader.js",
-        "vendor/mesh_loader.wasm"
-      ],
-      "matches": [
-        "<all_urls>"
-      ]
-    }
+  "optional_host_permissions": [
+    "<all_urls>"
   ]
 }
